@@ -40,7 +40,7 @@ spec:
         env:
           - name: ASPNETCORE_ENVIRONMENT
             value: Development
-        image: bmxcommonuse2acrn.azurecr.io/eleanor-employee-ms:v1
+        image: apdockerdotnet/api
         imagePullPolicy: Always
         name: api
         resources:
