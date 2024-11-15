@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: eleanor-employees-ms
+  name: eleanor-employees-ms
+  namespace: eleanor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: eleanor-employees-ms-service
+  template:
+    metadata:
+      labels:
+        name: eleanor-employees-ms-service
+    spec:
+      containers:
+      - image: nginx:latest
+        imagePullPolicy: IfNotPresent
+        name: nginx-proxy
+        ports:
+        - containerPort: 80
+          name: proxy-http
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 30m
+            memory: 30Mi
+          requests:
+            cpu: 10m
+            memory: 10Mi
+        volumeMounts:
+        - mountPath: /etc/nginx/nginx.conf
+          name: nginx-proxy-config
+          subPath: nginx.conf
+      - args:
+        - dotnet
+        - ERMX.PM.Gateway.Employees.API.Host.dll
+        env:
+          - name: ASPNETCORE_ENVIRONMENT
+            value: Development
+        image: bmxcommonuse2acrn.azurecr.io/eleanor-employee-ms:v1
+        imagePullPolicy: Always
+        name: api
+        resources:
+          limits:
+            cpu: 150m
+            memory: 150Mi
+        volumeMounts:
+        - name: appsettings
+          mountPath: /app/appsettings.json
+          subPath: appsettings.json
+          readOnly: true
+      volumes:
+      - configMap:
+          name: eleanor-employees-ms-nginx-map
+        name: nginx-proxy-config
+      - name: appsettings
+        secret:
+          secretName: eleanor-employees-ms-secret-appsettings
+

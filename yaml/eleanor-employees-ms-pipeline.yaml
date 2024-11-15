@@ -1,0 +1,39 @@
+trigger:
+- master
+
+variables:
+  imageTag: 'v1'
+  imageName: 'eleanor-employee-ms'
+  containeregistryserver: 'bmxcommonuse2acrn.azurecr.io'
+  ServiceConectACR: 'Docker-Image-ACR-DevTools'  # Nombre de la conexión de servicio que creaste
+  suscriptionEdnPoint: 'ERMX-Infra-NPRD'
+
+stages:
+- stage: Build
+  displayName: 'Build Image to ACR'
+  jobs:
+  - job: Build
+    displayName: 'Build Image'
+    pool:
+      name: 'AgentDevTools'
+    steps:
+    - task: Docker@1
+      inputs:
+        containerregistrytype: 'Azure Container Registry'
+        azureSubscriptionEndpoint: $(suscriptionEdnPoint)
+        azureContainerRegistry: $(containeregistryserver)
+        command: 'login'
+    - task: Docker@2
+      displayName: 'Login to ACR'
+      inputs:
+        containerRegistry: $(ServiceConectACR)
+        command: 'login'
+    - task: Docker@2
+      displayName: 'Build and Push'
+      inputs:
+        command: buildAndPush
+        repository: $(imageName)
+        dockerfile: 'Employees/Employees-ms/Dockerfile'
+        context: '.'
+        tags: |
+          $(imageTag)
